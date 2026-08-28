@@ -1,0 +1,2 @@
+{"type":"parsed","category_name":"","confidence":0,"anchors":{"dish":null,"cuisine":null,"substyle":null,"sensory":[],"direction":null,"person":null,"setting":null,"price_band":null,"ritual":null,"benchmark":null,"negation":[],"query_variants":[],"fallback_ladder":[]},"searchable":false,"missing_required":["dish_or_cuisine"],"_delay_ms":200}
+{"type":"need_clue","missing_required":["dish_or_cuisine"],"_delay_ms":400}

@@ -1,0 +1,139 @@
+{
+  "description": "Parse-harness cases A1–A12. Every parse prompt change re-runs this file. Gates: A2, A6, A9, A11, A12.",
+  "cases": [
+    {
+      "id": "A1",
+      "memory_text": "the sweet tomato and egg my grandmother used to make",
+      "city_label": "Boston, MA",
+      "expect": {
+        "searchable": true,
+        "intent": "find_restaurant",
+        "dish_present": true,
+        "person_present": true,
+        "direction": "family_home",
+        "missing_required": []
+      }
+    },
+    {
+      "id": "A2",
+      "memory_text": "bright yellow fried rice, bright red char siu, huge egg rolls, crab rangoon — not just cream cheese",
+      "city_label": "Seattle, WA",
+      "expect": {
+        "searchable": true,
+        "category_name_matches": ["east coast chinese-american", "chinese-american"],
+        "negation_contains": "cream cheese",
+        "no_authenticity_field": true
+      }
+    },
+    {
+      "id": "A3",
+      "memory_text": "Azorean, not Portuguese — and not Brazilian",
+      "city_label": "Los Angeles, CA",
+      "expect": {
+        "searchable": true,
+        "substyle_matches": ["azorean"],
+        "negation_contains": "Brazilian"
+      }
+    },
+    {
+      "id": "A4",
+      "memory_text": "Randy's is close but not quite — closer to frosted bread",
+      "city_label": "New York, NY",
+      "expect": {
+        "searchable": true,
+        "benchmark_matches": ["randy"],
+        "negation_or_sensory_mentions": "frosted"
+      }
+    },
+    {
+      "id": "A5",
+      "memory_text": "cevapi — I think there's only one Bosnian place around here",
+      "city_label": "Boston, MA",
+      "expect": {
+        "searchable": true,
+        "dish_or_cuisine_present": true
+      }
+    },
+    {
+      "id": "A6",
+      "memory_text": "Mexican food, but everything I've tried here is bad",
+      "city_label": "Toronto, ON",
+      "expect": {
+        "searchable": true,
+        "cuisine_matches": ["mexican"],
+        "note": "Parse may PASS. Evidence stage must emit no percentage if earned=0. Harness for score is a separate fixture."
+      }
+    },
+    {
+      "id": "A7",
+      "memory_text": "the Americanized Chinese takeout I grew up on, not authentic Sichuan",
+      "city_label": "Boston, MA",
+      "expect": {
+        "searchable": true,
+        "direction": "americanized_chain",
+        "negation_contains": "Sichuan",
+        "no_authenticity_field": true
+      }
+    },
+    {
+      "id": "A8",
+      "memory_text": "the place that gave free pickled veggies if you ordered three or more",
+      "city_label": "Washington, DC",
+      "expect": {
+        "does_not_block": true,
+        "ritual_or_setting_present": true,
+        "no_blocking_form": true
+      }
+    },
+    {
+      "id": "A9",
+      "memory_text": "the tacos I've tried were bland and soggy and the tortillas were weird",
+      "city_label": "Washington, DC",
+      "expect": {
+        "searchable": true,
+        "negation_contains_any": ["bland", "soggy", "tortilla"],
+        "sensory_must_not_contain_as_positive": ["bland", "soggy"]
+      }
+    },
+    {
+      "id": "A10",
+      "memory_text": "Missing home food.",
+      "city_label": "Chennai, IN",
+      "expect": {
+        "searchable": false,
+        "dish": null,
+        "cuisine": null,
+        "missing_required": ["dish_or_cuisine"],
+        "zero_places_calls": true
+      }
+    },
+    {
+      "id": "A11",
+      "memory_text": "the tomato and egg my grandmother made in her kitchen in Hunan",
+      "city_label": "Boston, MA",
+      "locale": "zh-CN",
+      "expect": {
+        "searchable": true,
+        "substyle_matches": ["hunan"],
+        "search_city_is": "Boston, MA",
+        "substyle_is_not_search_city": true,
+        "dish_present": true,
+        "release_blocker_if_places_query_contains": ["Hunan", "Changsha"]
+      }
+    },
+    {
+      "id": "A12",
+      "memory_text": "I want proper northeastern malatang, the spicy hot pot kind",
+      "city_label": "Boston, MA",
+      "locale": "zh-CN",
+      "expect": {
+        "searchable": true,
+        "dish_present": true,
+        "query_variants_include": ["mala tang", "malatang", "spicy hot pot"],
+        "fallback_ladder_first_dish": "spicy dry pot",
+        "fallback_ladder_relation_required": true,
+        "two_doors_on_zero_evidence": true
+      }
+    }
+  ]
+}

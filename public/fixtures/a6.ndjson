@@ -1,0 +1,6 @@
+{"type":"parsed","category_name":"Mexican","confidence":0.75,"anchors":{"dish":null,"cuisine":{"value":"Mexican","confidence":0.85},"substyle":null,"sensory":[],"direction":"street_stall","person":null,"setting":null,"price_band":null,"ritual":null,"benchmark":null,"negation":[{"field":"setting","value":"local options already tried"}],"query_variants":[],"fallback_ladder":[]},"searchable":true,"missing_required":[],"_delay_ms":200}
+{"type":"degraded","reason":"live_search_unavailable","_delay_ms":350}
+{"type":"candidates","count":2,"blips":[{"id":"m0","bearing":215.89271985260908,"distance":0.8528442727401622,"lat":43.643,"lng":-79.393},{"id":"m1","bearing":270.0034514456261,"distance":0.4999132859209234,"lat":43.653,"lng":-79.393}],"_delay_ms":350}
+{"type":"evaluated","id":"m0","_delay_ms":350}
+{"type":"evaluated","id":"m1","_delay_ms":350}
+{"type":"widen","from_mi":20,"to_mi":45,"why":"nothing within range clears the evidence bar","applied":false,"_delay_ms":350}

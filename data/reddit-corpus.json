@@ -1,0 +1,116 @@
+{
+  "_about": "Restaurants named by people answering 'where do you go for your home country's food?' in city subreddits. Harvested offline; quotes are verbatim comment text. Reddit is not a runtime dependency — see scripts/harvest-reddit.ts. Public content, quoted with attribution and a permalink. Not Google Maps Content, so it carries none of the constraints in docs/03-tech-design.md section 11.3.",
+  "_verified": "2026-08-27",
+  "entries": [
+    {
+      "restaurant": "Club Bosna",
+      "city": "Boston",
+      "cuisine_hint": "Bosnian",
+      "quote": "Sadly it's the only Yugoslavian restaurant in greater Boston area so I feel genuinely lucky to eat almost authentic ćevapi there.",
+      "subreddit": "r/boston",
+      "thread": "Immigrants of Boston and surrounding areas: What restaurants has the best/most authentic version of your country's food?",
+      "url": "https://www.reddit.com/r/boston/comments/1stt3oe/",
+      "upvotes": 283
+    },
+    {
+      "restaurant": "Thip Khao",
+      "city": "Washington",
+      "cuisine_hint": "Laotian",
+      "quote": "Thip khao has the best Laotian! I'm a first gen American and (stupidly) never learned to cook any Lao food so when I miss my family I go there!",
+      "subreddit": "r/washingtondc",
+      "thread": "Immigrants of DC: which restaurant has the best version of your country's food?",
+      "url": "https://www.reddit.com/r/washingtondc/comments/1kl5qj4/",
+      "upvotes": 162
+    },
+    {
+      "restaurant": "Himalayan Yak",
+      "city": "New York",
+      "cuisine_hint": "Nepali",
+      "quote": "My Nepali friend says Himalayan Yak in Jackson Heights is legit. They even have a band of rum he'd only see back home, and live music from a regular performer whom he grew up listening to back in Nepal.",
+      "subreddit": "r/AskNYC",
+      "thread": "People born abroad, what restaurant is the best example of your home cuisine?",
+      "url": "https://www.reddit.com/r/AskNYC/comments/10hu54r/",
+      "upvotes": 284
+    },
+    {
+      "restaurant": "Cruz del Sur",
+      "city": "New York",
+      "cuisine_hint": "Mexican",
+      "quote": "I was born and raised in Guadalajara and the closest “torta ahogada” I've found is Cruz del Sur.",
+      "subreddit": "r/AskNYC",
+      "thread": "People born abroad, what restaurant is the best example of your home cuisine?",
+      "url": "https://www.reddit.com/r/AskNYC/comments/10hu54r/",
+      "upvotes": 171
+    },
+    {
+      "restaurant": "South of the Cloud",
+      "city": "New York",
+      "cuisine_hint": "Yunnanese",
+      "quote": "South of the Cloud Yunnan noodle house. Pretty authentic regional Yunnan flavors—somewhere between Sichuan and Thai cuisine, with bold, spicy, fresh, and aromatic notes. I usually get the beef rice noodles, which come with fresh mint as an herb. It's a distinctive Yunnanese touch.",
+      "subreddit": "r/FoodNYC",
+      "thread": "Expats and transplants of NYC: what is your absolute favorite restaurant for your own hometown food?",
+      "url": "https://www.reddit.com/r/FoodNYC/comments/1vyrpgo/",
+      "upvotes": 113
+    },
+    {
+      "restaurant": "Natas",
+      "city": "Los Angeles",
+      "cuisine_hint": "Portuguese",
+      "quote": "Natas - not 100% authentic, but it's the closest I can come to Azorean/Portuguese(the country not Brazil) cuisine.",
+      "subreddit": "r/AskLosAngeles",
+      "thread": "Non-Americans of LA, what LA restaurant is most authentic to your home country's cuisine?",
+      "url": "https://www.reddit.com/r/AskLosAngeles/comments/1du8cjy/",
+      "upvotes": 280
+    },
+    {
+      "restaurant": "Niceys",
+      "city": "Toronto",
+      "cuisine_hint": "Jamaican",
+      "quote": "my jamaican grandma refuses to go to any jamaican place.. except niceys in scarborough",
+      "subreddit": "r/askTO",
+      "thread": "Immigrants in Toronto: which restaurant serves the best food from your home country?",
+      "url": "https://www.reddit.com/r/askTO/comments/1ubhv9c/",
+      "upvotes": 428
+    },
+    {
+      "restaurant": "Republic Cantina",
+      "city": "Washington",
+      "cuisine_hint": "Tex-Mex",
+      "quote": "I went to school in Texas - Republic Cantina is the closest to the TexMex I had there. The tortillas are legit.",
+      "subreddit": "r/washingtondc",
+      "thread": "Tacos that won't make a Texan cry?",
+      "url": "https://www.reddit.com/r/washingtondc/comments/1qwvk75/",
+      "upvotes": 54
+    },
+    {
+      "restaurant": "Taqueria Puebla",
+      "city": "Washington",
+      "cuisine_hint": "Mexican",
+      "quote": "Up there with the best lengua tacos I've ever had. Tortillas were a little too big and thick for my liking, but the meat was incredible.",
+      "subreddit": "r/washingtondc",
+      "thread": "Reviews of taquerias (and a burrito joint) in the DMV by a homesick Californian",
+      "url": "https://www.reddit.com/r/washingtondc/comments/t1buwg/",
+      "upvotes": 287
+    },
+    {
+      "restaurant": "Taco Bar el Guero",
+      "city": "Washington",
+      "cuisine_hint": "Mexican",
+      "quote": "It's out in a gas station Gaithersburg and it's legit, owned and ran by a couple of chilangos.",
+      "subreddit": "r/washingtondc",
+      "thread": "Reviews of taquerias (and a burrito joint) in the DMV by a homesick Californian",
+      "url": "https://www.reddit.com/r/washingtondc/comments/t1buwg/",
+      "upvotes": 48
+    },
+    {
+      "restaurant": "Magic Dragon",
+      "city": "Seattle",
+      "cuisine_hint": "East Coast Chinese-American",
+      "quote": "Magic Dragon in Interbay",
+      "subreddit": "r/SeattleWA",
+      "thread": "where can i find violently american chinese-american food?",
+      "url": "https://www.reddit.com/r/SeattleWA/comments/14sv2gn/",
+      "upvotes": 114
+    }
+  ]
+}

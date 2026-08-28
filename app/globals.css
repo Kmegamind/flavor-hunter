@@ -1,0 +1,1229 @@
+:root {
+  --frame: #3ba3f7;
+  --frame-hi: #6bc2ff;
+  --frame-lo: #1e6bb5;
+  --frame-edge: #0b3a6e;
+  --screen: #071426;
+  --land: #0c1c33;
+  --grid: #1a3a5c;
+  --signal: #ff3d00;
+  --lock: #ffc400;
+  --proof: #7cff6b;
+  --cyan: #5ce1ff;
+  --hi: #f4f7fa;
+  --mute: #9bb4c9;
+  --reject: #3d5566;
+  --arcade1: #ffb020;
+  --arcade2: #ff7a00;
+
+  /* Dossier register. The pixel fonts (VT323, Press Start 2P) carry no CJK glyphs at
+     all, so verbatim non-Latin quotes render as tofu in them — and 16px prose in a
+     pixel monospace is not readable prose. System stack: zero bytes, native CJK. */
+  --font-read: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  image-rendering: pixelated;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #05080d;
+  color: var(--hi);
+  font-family: var(--font-vt), ui-monospace, monospace;
+}
+
+body {
+  padding: 48px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#page {
+  width: min(960px, 100%);
+}
+
+#device {
+  position: relative;
+  background: var(--frame);
+  overflow: visible;
+  background-image: repeating-linear-gradient(90deg, #3ba3f7 0 6px, #4aadf9 6px 12px);
+  padding: 14px 14px 10px;
+  box-shadow:
+    10px 10px 0 var(--frame-edge),
+    inset 0 0 0 4px var(--frame-hi),
+    inset 0 0 0 8px var(--frame-lo);
+}
+
+#device::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+  z-index: 4;
+}
+
+#titleplate {
+  position: absolute;
+  left: 50%;
+  top: -22px;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0a1a2e;
+  padding: 4px 14px 6px;
+  border: 4px solid var(--frame-hi);
+  box-shadow: 4px 4px 0 var(--frame-edge);
+}
+
+#title-hound {
+  display: block;
+  image-rendering: pixelated;
+  flex: none;
+}
+
+#titleplate h1 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 2px 2px 0 #082038;
+}
+
+.corner {
+  position: absolute;
+  z-index: 6;
+  width: 36px;
+  height: 36px;
+  background: #0a1a2e;
+  border: 3px solid var(--frame-hi);
+  display: grid;
+  place-items: center;
+  image-rendering: pixelated;
+}
+
+.corner.tl {
+  top: 10px;
+  left: 10px;
+  border-radius: 50%;
+}
+
+.corner.tr {
+  top: 10px;
+  right: 10px;
+}
+
+.px-nose,
+.px-star {
+  display: grid;
+  image-rendering: pixelated;
+}
+
+.px-nose {
+  grid-template-columns: repeat(7, 3px);
+  grid-template-rows: repeat(7, 3px);
+}
+
+.px-star {
+  grid-template-columns: repeat(7, 3px);
+  grid-template-rows: repeat(7, 3px);
+}
+
+.px-nose span,
+.px-star span {
+  width: 3px;
+  height: 3px;
+}
+
+.px-nose .n {
+  background: #141414;
+}
+.px-nose .l {
+  background: #e02020;
+}
+.px-nose .w {
+  background: #f4f7fa;
+}
+
+.px-star .s {
+  background: #ffc400;
+}
+
+#tabs {
+  position: absolute;
+  left: -28px;
+  top: 90px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tab {
+  width: 28px;
+  height: 52px;
+  border: 3px solid var(--frame-edge);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-press), monospace;
+  font-size: 7px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: #0a1a2e;
+}
+
+.tab.c {
+  background: var(--signal);
+}
+.tab.r {
+  background: var(--cyan);
+}
+
+#screen {
+  position: relative;
+  /* Was min(52vh, 460px) — which left ~320px of the viewport unused below the buttons
+     while the panel had to overflow. Measured on a 375x812 phone: device 492 of 812.
+     Now the screen takes the height that is actually there, so half of it can hold the
+     idle panel and the other half still reads as a map. */
+  height: min(70vh, 720px);
+  min-height: 280px;
+  background: var(--screen);
+  border: 4px solid #041018;
+  overflow: hidden;
+}
+
+#gmap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#gmap.live {
+  pointer-events: auto;
+}
+
+.fh-pin {
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  background: #5ce1ff;
+  box-shadow: 0 0 0 2px #041018;
+  cursor: pointer;
+}
+
+.fh-pin.candidate {
+  background: #7cff6b;
+}
+
+.fh-pin.locked {
+  width: 14px;
+  height: 14px;
+  background: #ff3d00;
+}
+
+.fh-pin.eliminated {
+  background: #3d5566;
+  opacity: 0.45;
+}
+
+#field,
+#mini {
+  display: block;
+}
+
+#field {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ruler-x,
+.ruler-y {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.55;
+}
+
+.ruler-x {
+  top: 0;
+  left: 22px;
+  right: 0;
+  height: 14px;
+  background: repeating-linear-gradient(90deg, #cfe4f8 0 2px, transparent 2px 20px);
+}
+
+.ruler-y {
+  top: 14px;
+  left: 0;
+  bottom: 0;
+  width: 14px;
+  background: repeating-linear-gradient(180deg, #cfe4f8 0 2px, transparent 2px 20px);
+}
+
+#miniwrap {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 3;
+  width: 118px;
+  height: 118px;
+  border: 3px solid var(--frame-hi);
+  background: rgba(7, 20, 38, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #041018;
+}
+
+#mini {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+}
+
+#intel {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 3;
+  width: min(300px, 46%);
+  background: rgba(7, 20, 38, 0.92);
+  border: 3px solid var(--cyan);
+  padding: 10px 12px;
+  max-height: 58%;
+  overflow-x: visible;
+  overflow-y: auto;
+  font-size: 18px;
+  line-height: 1.25;
+  box-shadow: 4px 4px 0 #041018;
+}
+
+#intel.idle-sheet {
+  /* The idle panel has to hold a prefilled memory plus two examples shown in full.
+     Labels ("Tacos from back home") fit in 340px and taught nothing; the point of this
+     screen is how much detail to give, so the text has to be readable. */
+  /* Half the screen, so the map above stays legible as a map. The examples fit in that
+     budget because they scroll horizontally now — one card, not a stack of two. */
+  max-height: 58%;
+  /* Prose needs measure. 46% of a phone is 170px, which wrapped the examples to
+     one or two words a line and pushed them below the fold. */
+  width: calc(100% - 36px);
+}
+
+#intel .k {
+  font-family: var(--font-press), monospace;
+  font-size: 7px;
+  color: var(--cyan);
+  letter-spacing: 0.08em;
+}
+
+#intel h2 {
+  margin: 6px 0 8px;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+#intel textarea,
+#intel input,
+#intel select {
+  width: 100%;
+  background: #041018;
+  color: var(--hi);
+  border: 2px solid var(--grid);
+  font: inherit;
+  padding: 6px;
+  margin: 6px 0;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  margin: 4px 0 6px;
+}
+
+.meta label {
+  flex: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  color: var(--mute);
+}
+
+.near-field {
+  flex: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+}
+
+.meta-k {
+  font-size: 14px;
+  color: var(--mute);
+}
+
+.near-row {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.near-row input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  text-overflow: ellipsis;
+}
+
+.geo {
+  flex: none;
+  max-width: 6.5rem;
+  white-space: nowrap;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--lock);
+  background: #061018;
+  border: 2px solid var(--lock);
+  cursor: pointer;
+}
+
+.geo.on {
+  color: var(--proof);
+  border-color: var(--proof);
+}
+
+.geo:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.place-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 2px);
+  bottom: auto;
+  z-index: 12;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #041018;
+  border: 2px solid var(--cyan);
+  max-height: 168px;
+  overflow: auto;
+  box-shadow: 4px 4px 0 #041018;
+}
+
+.place-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--hi);
+  border: 0;
+  border-bottom: 1px solid var(--grid);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.25;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.place-list button:last-child {
+  border-bottom: 0;
+}
+
+.place-list button.on,
+.place-list button:hover {
+  background: #0c2438;
+}
+
+.place-list strong {
+  display: block;
+  font-weight: 400;
+}
+
+.place-list span {
+  display: block;
+  color: var(--mute);
+  font-size: 12px;
+}
+
+.try-k {
+  margin: 8px 0 2px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.chip {
+  border: 2px solid var(--grid);
+  padding: 3px 6px;
+  font-size: 15px;
+  color: var(--mute);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.chip.ok {
+  border-color: var(--proof);
+  color: var(--proof);
+}
+
+.chip.q {
+  border-color: var(--lock);
+  color: var(--lock);
+}
+
+.chip .change {
+  margin-left: 6px;
+  background: none;
+  border: 0;
+  color: var(--lock);
+  cursor: pointer;
+  font: inherit;
+}
+
+.score {
+  font-family: var(--font-press), monospace;
+  font-size: 22px;
+  color: var(--signal);
+  text-shadow: 0 0 12px rgba(255, 61, 0, 0.5);
+}
+
+.ev {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--grid);
+  padding: 6px 0;
+  font-size: 16px;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.qline {
+  color: var(--mute);
+  font-size: 15px;
+  padding-left: 14px;
+}
+
+/* The receipt: verbatim source text and provenance, under the reading line.
+   Never a substitute for the quote — see lib/pipeline/english-labels.ts. */
+.qsrc {
+  color: var(--reject);
+  font-size: 12px;
+  padding-left: 14px;
+  line-height: 1.5;
+}
+
+.ev.miss {
+  cursor: default;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.rank-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: #061018;
+  border: 2px solid var(--grid);
+  color: inherit;
+  font: inherit;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.rank-row.sel {
+  border-color: var(--signal);
+}
+
+.rank-row .nm {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.rank-row .addr,
+.addr-line {
+  color: var(--mute);
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-row .sc {
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  color: var(--signal);
+  flex: none;
+}
+
+.rank-row .mi {
+  color: var(--mute);
+  font-size: 14px;
+  flex: none;
+}
+
+.gap-k {
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+
+.banner {
+  background: #3a2208;
+  color: var(--lock);
+  border: 2px solid var(--lock);
+  padding: 4px 6px;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.mute {
+  color: var(--mute);
+  font-size: 16px;
+}
+
+.link,
+.quote-full button {
+  background: none;
+  border: 0;
+  color: var(--cyan);
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 0;
+}
+
+#ticker {
+  display: flex;
+  align-items: stretch;
+  margin-top: 8px;
+  background: #06101c;
+  border: 3px solid #041018;
+  min-height: 36px;
+}
+
+#log {
+  flex: 1;
+  overflow: hidden;
+  padding: 6px 10px;
+  font-size: 20px;
+  color: var(--cyan);
+  white-space: nowrap;
+}
+
+#snd {
+  width: 44px;
+  flex: none;
+  background: #7cff6b;
+  border: 0;
+  border-left: 3px solid #041018;
+  color: #06200a;
+  font-size: 18px;
+  cursor: pointer;
+  font-family: var(--font-press), monospace;
+}
+
+#snd.off {
+  background: #3d5566;
+  color: #9bb4c9;
+}
+
+#actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 22px 8px 0;
+  flex-wrap: wrap;
+}
+
+.arcade {
+  min-width: 200px;
+  min-height: 52px;
+  padding: 14px 18px;
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  color: #1a0a00;
+  background: linear-gradient(#ffd27a, #ff7a00);
+  border: 4px solid #ffe7a8;
+  box-shadow: 6px 6px 0 #8a3a00;
+  cursor: pointer;
+}
+
+.arcade:active {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 #8a3a00;
+}
+
+.arcade.ghost {
+  background: linear-gradient(#8aa4b8, #4a6578);
+  border-color: #c5d4e0;
+  color: #071426;
+  box-shadow: 6px 6px 0 #243440;
+}
+
+.arcade.mini {
+  min-width: 0;
+  min-height: 36px;
+  font-size: 8px;
+  padding: 8px 10px;
+}
+
+.doors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.door-rel {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-vt), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #1a0a00;
+  opacity: 0.75;
+}
+
+#tag {
+  margin-top: 28px;
+  text-align: center;
+  color: #6a8296;
+  font-size: 16px;
+}
+
+#tag strong {
+  display: block;
+  color: #cfe4f8;
+  font-family: var(--font-press), monospace;
+  font-size: 8px;
+  line-height: 1.7;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arcade:active {
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 28px 8px 24px;
+  }
+  #titleplate h1 {
+    font-size: 8px;
+  }
+  #tabs {
+    display: none;
+  }
+  #intel {
+    width: calc(100% - 28px);
+    left: 10px;
+    max-height: 46%;
+    font-size: 16px;
+  }
+  #intel.idle-sheet {
+    max-height: min(68%, 320px);
+  }
+  #miniwrap {
+    width: 88px;
+    height: 88px;
+  }
+  #mini {
+    width: 88px;
+    height: 88px;
+  }
+  .arcade {
+    min-width: 0;
+    flex: 1;
+    font-size: 8px;
+    padding: 12px 8px;
+  }
+}
+
+/* ── Dossier register ───────────────────────────────────────────────────────
+   The scope is an instrument: monospace, terse, 11-12px. The card after lock is
+   a report, and a report is not terse. Compressing the evidence to fit the pixel
+   aesthetic was costing the user the information they came for. Two registers,
+   deliberately. */
+.reason {
+  font-family: var(--font-read);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--hi);
+  margin: 6px 0 14px;
+  max-width: 62ch;
+}
+
+#evs .ev {
+  padding: 10px 0;
+  border-top: 1px solid var(--grid);
+}
+
+#evs .qline {
+  font-family: var(--font-read);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* The receipt carries verbatim source text, which may be in any script. */
+.qsrc {
+  font-family: var(--font-read);
+}
+
+.qsrc a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+.qsrc a:hover,
+.qsrc a:focus-visible {
+  text-decoration: underline;
+}
+
+/* ── Panel collapse ─────────────────────────────────────────────────────────
+   The intel panel sits over the map and sometimes covers the thing you want to
+   look at. It hides; the toggle stays. */
+#intel-toggle {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 4;
+  background: rgba(7, 20, 38, 0.94);
+  color: var(--cyan);
+  border: 3px solid var(--cyan);
+  box-shadow: 4px 4px 0 #041018;
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+#intel-toggle:not(.closed) {
+  bottom: auto;
+  top: 6px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+#intel-toggle:not(.closed):active {
+  transform: translateX(-50%) translate(1px, 1px);
+}
+
+#intel-toggle:active {
+  transform: translate(1px, 1px);
+}
+
+/* ── Basemap tint ───────────────────────────────────────────────────────────
+   NOT the real fix. The map hue lives in the Map Style attached to
+   NEXT_PUBLIC_GOOGLE_MAP_ID in Google Cloud Console — with a mapId set, an inline
+   `styles` array is ignored, and Advanced Markers require the mapId, so dropping it
+   is not an option. Import data/map-style-blue-violet.json there.
+
+   Verified against the running app: the tiles arrive as the default light Google
+   theme, and no CSS filter turns a light map into a dark one. What is left here is a
+   mild cool shift so an unstyled Map ID is less jarring; it is deliberately weak,
+   because a filter strong enough to fake darkness also destroys the pins. */
+#gmap {
+  filter: saturate(0.85) hue-rotate(-10deg);
+}
+
+#gmap .fh-pin,
+#gmap .fh-pin::after {
+  filter: saturate(1.18) hue-rotate(10deg);
+}
+
+/* ── Ticker as a readout, not a mood light ─────────────────────────────────── */
+.tick-lock b {
+  color: var(--lock);
+  font-weight: 400;
+}
+
+.tick-addr {
+  color: var(--hi);
+}
+
+.tick-num {
+  color: var(--mute);
+}
+
+#log {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Map controls ───────────────────────────────────────────────────────────
+   Pinch-zoom is undiscoverable inside a drawn bezel: nothing tells you the middle
+   of the device is a live map. Three visible keys say so. */
+#mapctl {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#mapctl button {
+  width: 40px;
+  height: 40px;
+  background: rgba(7, 20, 38, 0.94);
+  color: var(--cyan);
+  border: 3px solid var(--cyan);
+  box-shadow: 3px 3px 0 #041018;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#mapctl button:active {
+  transform: translate(1px, 1px);
+}
+
+/* ── Location blocked ───────────────────────────────────────────────────────
+   Once a browser denies location it stops prompting, so the button had become a
+   control that could never do anything. Say so on the button, and say what to do. */
+.near-row .geo.blocked {
+  color: var(--signal);
+  border-color: var(--signal);
+}
+
+.geo-hint {
+  margin: 6px 0 0;
+  font-family: var(--font-read);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+/* ── Full-text examples ─────────────────────────────────────────────────────
+   Read as prose, not as chips: the lesson of the idle screen is granularity, and a
+   three-word label demonstrates the opposite of it. */
+#intel textarea {
+  font-family: var(--font-read);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.examples {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.examples::-webkit-scrollbar {
+  display: none;
+}
+
+.ex-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ex-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ex-nav button {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  color: var(--cyan);
+  border: 2px solid var(--grid);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ex-nav button:disabled {
+  color: var(--reject);
+  cursor: default;
+}
+
+.ex-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.ex-dots i {
+  width: 6px;
+  height: 6px;
+  background: var(--reject);
+}
+
+.ex-dots i.on {
+  background: var(--lock);
+}
+
+.example {
+  display: block;
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  text-align: left;
+  background: rgba(6, 16, 32, 0.72);
+  border: 2px solid var(--grid);
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: var(--font-read);
+}
+
+.example:hover,
+.example:focus-visible {
+  border-color: var(--cyan);
+}
+
+.example:active {
+  transform: translate(1px, 1px);
+}
+
+.example-k {
+  display: block;
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--lock);
+  margin-bottom: 4px;
+}
+
+.example-t {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+/* ── Compact idle controls ──────────────────────────────────────────────────
+   The location + range block was taller than the two examples it was pushing off
+   screen: two text labels, an input, a button, a hint and a select, all stacked.
+   The controls label themselves — the input has a placeholder, the select reads
+   "20 mi" — so the words "near" and "range" were costing more than they explained. */
+#intel.idle-sheet .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+#intel.idle-sheet .meta .meta-k {
+  display: none;
+}
+
+#intel.idle-sheet .near-field {
+  flex: 1 1 100%;
+}
+
+#intel.idle-sheet .meta > label {
+  flex: 0 0 auto;
+  font-size: 0;
+}
+
+#intel.idle-sheet .meta > label select {
+  font-size: 15px;
+  padding: 6px 8px;
+}
+
+#intel.idle-sheet h2 {
+  font-size: 20px;
+  margin: 2px 0 6px;
+}
+
+#intel.idle-sheet textarea {
+  min-height: 74px;
+}
+
+#intel.idle-sheet .try-k {
+  margin: 8px 0 2px;
+}
+
+#intel.idle-sheet .example {
+  padding: 6px 9px;
+}
+
+/* ── Location as a chip, not a form ─────────────────────────────────────────
+   FR-4b asked for "one tappable chip"; the build had grown into a stacked form —
+   two labels, an input, a button, a hint and a select — 109px of a 320px panel for
+   something set once and then only read. Collapsed it is 34px. */
+.place-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: rgba(6, 16, 32, 0.72);
+  border: 2px solid var(--grid);
+  color: var(--hi);
+  font-family: var(--font-read);
+  font-size: 14px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.place-chip:hover,
+.place-chip:focus-visible {
+  border-color: var(--cyan);
+}
+
+.place-chip-edit {
+  margin-left: auto;
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  color: var(--lock);
+}
+
+.place-done {
+  background: transparent;
+  border: 2px solid var(--cyan);
+  color: var(--cyan);
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+/* ── Location help dialog ───────────────────────────────────────────────────
+   Once a browser denies geolocation it stops prompting, so the button cannot
+   re-open the native dialog. Explain the setting instead of leaving a dead control. */
+.geo-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--cyan);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.geo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(3, 8, 18, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.geo-modal-box {
+  max-width: 380px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--screen);
+  border: 3px solid var(--cyan);
+  box-shadow: 6px 6px 0 #041018;
+  padding: 16px;
+  font-family: var(--font-read);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--hi);
+}
+
+.geo-modal-box p,
+.geo-modal-box ol {
+  margin: 0 0 12px;
+}
+
+.geo-modal-box ol {
+  padding-left: 20px;
+}
+
+.geo-modal-box li {
+  margin-bottom: 8px;
+}
+
+.geo-modal-box b {
+  color: var(--lock);
+  font-weight: 400;
+}
+
+.geo-modal-k {
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--signal);
+}
+
+.geo-modal-alt {
+  color: var(--mute);
+  font-size: 13px;
+  border-top: 1px solid var(--grid);
+  padding-top: 10px;
+}
+
+.geo-modal-close {
+  width: 100%;
+  min-height: 44px;
+  background: transparent;
+  border: 3px solid var(--cyan);
+  color: var(--cyan);
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  cursor: pointer;
+}

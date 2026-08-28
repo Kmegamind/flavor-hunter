@@ -1,0 +1,31 @@
+# ── Secrets ────────────────────────────────────────────────────────────────
+# Never commit these. Rotate any key that has ever appeared in a terminal.
+.env
+.env.local
+.env*.local
+*.pem
+*-key.json
+service-account*.json
+
+# ── Dependencies / build ───────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Generated art ──────────────────────────────────────────────────────────
+# Rebuilt by `npm run art` from lib/hound-pixels.ts — the source of truth is code.
+/public/hound.png
+/public/hound-emote.png
+/public/og-image.png
+
+# ── Local / editor ─────────────────────────────────────────────────────────
+.DS_Store
+*.log
+.vercel
+coverage/
+.idea/
+.vscode/

@@ -1,0 +1,14 @@
+{
+  "image": "hound-emote.png",
+  "cell": [48, 48],
+  "grid": [7, 7],
+  "states": {
+    "e_boot": { "row": 0, "frames": 7, "fps": 8, "loop": true },
+    "e_think": { "row": 1, "frames": 7, "fps": 6, "loop": true },
+    "e_clue": { "row": 2, "frames": 7, "fps": 6, "loop": false },
+    "e_hunt": { "row": 3, "frames": 7, "fps": 10, "loop": true },
+    "e_nope": { "row": 4, "frames": 7, "fps": 10, "loop": false },
+    "e_lock": { "row": 5, "frames": 7, "fps": 8, "loop": false },
+    "e_empty": { "row": 6, "frames": 7, "fps": 4, "loop": false }
+  }
+}

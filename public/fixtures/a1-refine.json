@@ -1,0 +1,176 @@
+{
+  "anchors": {
+    "dish": {
+      "value": "tomato and egg",
+      "confidence": 0.85
+    },
+    "cuisine": {
+      "value": "Chinese",
+      "confidence": 0.85
+    },
+    "substyle": null,
+    "sensory": [
+      {
+        "value": "sweet",
+        "confidence": 0.85
+      }
+    ],
+    "direction": "family_home",
+    "person": {
+      "value": "grandmother",
+      "confidence": 0.85
+    },
+    "setting": null,
+    "price_band": null,
+    "ritual": null,
+    "benchmark": null,
+    "negation": [],
+    "query_variants": [
+      "tomato and egg",
+      "tomato and egg",
+      "tomato egg"
+    ],
+    "fallback_ladder": []
+  },
+  "category_name": "sweet-style home-cooked tomato and egg",
+  "ranked": [
+    {
+      "id": "c7",
+      "name": "Hunan Kitchen",
+      "distance": 0.8,
+      "bearing": 195,
+      "score": 97,
+      "limited_evidence": false,
+      "evidence": [
+        {
+          "anchor": "cuisine",
+          "quote": "Chinese",
+          "source": "website",
+          "mechanism": "deterministic_match",
+          "source_name": "example.invalid",
+          "fetched_at": "2026-08-28T01:42:05.368Z",
+          "verified": true
+        },
+        {
+          "anchor": "sensory",
+          "quote": "sweet",
+          "source": "website",
+          "mechanism": "deterministic_match",
+          "source_name": "example.invalid",
+          "fetched_at": "2026-08-28T01:42:05.368Z",
+          "verified": true
+        },
+        {
+          "anchor": "dish",
+          "quote": "tomato and egg",
+          "source": "website",
+          "mechanism": "deterministic_match",
+          "source_name": "example.invalid",
+          "fetched_at": "2026-08-28T01:42:05.368Z",
+          "verified": true
+        },
+        {
+          "anchor": "dish",
+          "quote": "home-style tomato and egg (sweet)",
+          "source": "website",
+          "mechanism": "deterministic_match",
+          "source_name": "example.invalid",
+          "fetched_at": "2026-08-28T01:42:05.368Z",
+          "verified": true
+        },
+        {
+          "anchor": "substyle",
+          "quote": "operators from Hunan",
+          "source": "website",
+          "mechanism": "deterministic_match",
+          "source_name": "example.invalid",
+          "fetched_at": "2026-08-28T01:42:05.368Z",
+          "verified": true
+        },
+        {
+          "anchor": "direction",
+          "quote": "home-style",
+          "source": "website",
+          "mechanism": "deterministic_match",
+          "source_name": "example.invalid",
+          "fetched_at": "2026-08-28T01:42:05.368Z",
+          "verified": true
+        },
+        {
+          "anchor": "person",
+          "quote": "grandmother",
+          "source": "google_review",
+          "mechanism": "deterministic_match",
+          "source_name": "Google",
+          "fetched_at": "2026-08-28T01:42:05.368Z",
+          "source_date": "2026-03",
+          "denominator": "1 of 2 available reviews",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "id": "c0",
+      "name": "East Ocean",
+      "distance": 0.6,
+      "bearing": 185,
+      "score": null,
+      "limited_evidence": true,
+      "evidence": []
+    },
+    {
+      "id": "c1",
+      "name": "Golden Wok",
+      "distance": 0.7,
+      "bearing": 302,
+      "score": null,
+      "limited_evidence": true,
+      "evidence": []
+    },
+    {
+      "id": "c2",
+      "name": "Lucky Garden",
+      "distance": 1.7,
+      "bearing": 218,
+      "score": null,
+      "limited_evidence": true,
+      "evidence": []
+    },
+    {
+      "id": "c3",
+      "name": "Joy Taste",
+      "distance": 0.8,
+      "bearing": 34,
+      "score": null,
+      "limited_evidence": true,
+      "evidence": []
+    },
+    {
+      "id": "c4",
+      "name": "Red Lantern",
+      "distance": 0.8,
+      "bearing": 116,
+      "score": null,
+      "limited_evidence": true,
+      "evidence": []
+    },
+    {
+      "id": "c5",
+      "name": "Mei Mei",
+      "distance": 2.3,
+      "bearing": 248,
+      "score": null,
+      "limited_evidence": true,
+      "evidence": []
+    },
+    {
+      "id": "c6",
+      "name": "Home Style",
+      "distance": 2.1,
+      "bearing": 311,
+      "score": null,
+      "limited_evidence": true,
+      "evidence": []
+    }
+  ]
+}
