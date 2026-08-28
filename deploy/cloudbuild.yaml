@@ -1,0 +1,23 @@
+# Cloud Build config.
+#
+# Exists only to pass the two NEXT_PUBLIC_* values as Docker build args. They are inlined
+# into the browser bundle at build time, so `gcloud run deploy --source` (which offers no
+# way to set build args) cannot produce a working image — the map would silently render
+# with no API key.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${_MAPS_KEY}
+      - --build-arg
+      - NEXT_PUBLIC_GOOGLE_MAP_ID=${_MAP_ID}
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+timeout: 1200s
