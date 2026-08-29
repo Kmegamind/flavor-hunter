@@ -312,3 +312,39 @@ same memory. Candidate fixes, in order of preference:
 All four evidence lines came from Google reviews; none from the restaurant's website. The
 deterministic review path (FR-6b, Step 6) is carrying the whole result here, which is exactly
 what it was added for — and it is the path that cannot fabricate.
+
+## Verifying the two-pass parse — and the two bugs it exposed
+
+The second parse pass was suspected dead code: prompt rule 13 now tells the model that a
+`The dish or cuisine is: …` line *is* the answer, which should make the first pass succeed and
+make a second full parse — two more model calls — unnecessary.
+
+Instrumenting it and running the two-step follow-up flow in production showed something worse
+than dead code. It fired on the **initial vague input**, re-parsing `"Missing home food"` against
+itself, and did **not** fire on the answered follow-up, which succeeded in a single pass. The
+patch was doing the opposite of its purpose: paying for a wasted pass in the case it could not
+help, and staying out of the case it was written for.
+
+It now requires the tagged follow-up line to be present and non-vague. No tag, no second pass.
+
+The same instrumentation surfaced two silent failures that had been sending correct parses to
+the heuristic phrase table:
+
+- `category_name` was `z.string()`, but a model looking at `"Missing home food."` honestly
+  returns `null`. The whole envelope was rejected over it. Now nullish, coerced to `""`.
+- `direction` is an enum, so it sat outside the `SCALARS` list that `coerceEnvelope()`
+  normalises — it was the one anchor nothing unwrapped. Models wrap it as
+  `{value, confidence}` like the others often enough to reject the envelope. Now unwrapped.
+
+Measured against the same two-step flow, before and after:
+
+| | before | after |
+|---|---|---|
+| step 1, vague input | 19s, envelope rejected, wasted second pass | **7s**, no fallback, no second pass |
+| step 2, after follow-up | envelope rejected on `direction` | **12s**, `dish: laab`, `direction: family_home` |
+
+Neither of these had a symptom. The pipeline answered, the answer was plausible, and the only
+evidence that it had stopped using the model was a log line that did not exist yet. That is the
+second time in this project a silent fallback has run for an extended period — the first was a
+retired model id — and both were found only by adding logging to the fallback path rather than
+by reading output.

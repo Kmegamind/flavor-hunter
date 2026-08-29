@@ -7,6 +7,7 @@ import {
   stripNegationsFromSensory,
   fillMissingDishOrCuisine,
   lastClueChunk,
+  tooVagueClue,
 } from "@/lib/pipeline/parse-heuristic"
 import { geminiGenerate, geminiKey } from "@/lib/pipeline/gemini"
 
@@ -70,10 +71,21 @@ export async function parseMemory(
   const combined = await parseOnce(memoryText, locale, cityLabel, onInterpret)
   if (combined.anchors.dish || combined.anchors.cuisine) return combined
 
-  const clue = lastClueChunk(memoryText).trim()
-  if (!clue || clue.toLowerCase() === memoryText.trim().toLowerCase()) return combined
+  // Only re-read when the user has actually answered the follow-up.
+  //
+  // This used to re-parse `lastClueChunk()` — the final sentence, whatever it was — whenever
+  // the first pass found no dish. Instrumenting it showed the path firing on the *initial*
+  // vague input, re-parsing "Missing home food" against itself for two more model calls and
+  // roughly 25 seconds, while never firing in the case it was written for: once rule 13 told
+  // the model that a "The dish or cuisine is:" line is the answer, the first pass got it right
+  // in 7 seconds.
+  //
+  // So it now requires that tagged line to exist. No tag, no second pass.
+  const tagged = memoryText.match(/the dish or cuisine is:\s*([^\n]+)/i)?.[1]?.trim()
+  if (!tagged || tooVagueClue(tagged)) return combined
 
-  const fromClue = await parseOnce(clue, locale, cityLabel)
+  console.warn(`[parse] second pass on answered clue: ${JSON.stringify(tagged.slice(0, 60))}`)
+  const fromClue = await parseOnce(tagged, locale, cityLabel)
   if (!fromClue.anchors.dish && !fromClue.anchors.cuisine) return combined
 
   return postParse(
@@ -151,7 +163,16 @@ function coerceEnvelope(raw: unknown): unknown {
   a.negation = coerceNegation(a.negation)
   if (!Array.isArray(a.query_variants)) a.query_variants = []
   if (!Array.isArray(a.fallback_ladder)) a.fallback_ladder = []
+  // `direction` is an enum, not a {value, confidence} pair, so it sits outside SCALARS — and
+  // was therefore the one anchor nothing normalised. Models wrap it like the others often
+  // enough that the whole envelope was being rejected over it.
   if (a.direction === undefined) a.direction = null
+  else if (a.direction && typeof a.direction === "object") {
+    const inner = (a.direction as Record<string, unknown>).value
+    a.direction = typeof inner === "string" ? inner : null
+  } else if (typeof a.direction === "string" && !a.direction.trim()) {
+    a.direction = null
+  }
 
   env.anchors = a
   return env

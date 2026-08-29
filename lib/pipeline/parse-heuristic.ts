@@ -419,7 +419,8 @@ export function lastClueChunk(text: string): string {
   return parts[parts.length - 1] ?? text.trim()
 }
 
-function tooVagueClue(s: string): boolean {
+/** Shared with parse.ts: an answer this thin is not an answer. */
+export function tooVagueClue(s: string): boolean {
   const t = s.toLowerCase().replace(/[?!.,]/g, "").trim()
   if (t.length < 2) return true
   if (/^(missing\s+)?home\s+food$/.test(t)) return true

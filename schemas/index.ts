@@ -76,7 +76,12 @@ export const MissingRequired = z.enum(["location", "dish_or_cuisine", "intent"])
 export const Interpretation = z.object({
   intent: IntentEnum,
   reasoning: z.string(),
-  category_name: z.string(),
+  /**
+   * Empty when nothing identifiable was said. The model returns `null` there, which is the
+   * honest answer — an earlier `z.string()` rejected the whole envelope over it and sent a
+   * correct parse to the phrase table.
+   */
+  category_name: z.string().nullish().transform((v) => v ?? ""),
   category_name_native: z.string().nullish(),
   category_confidence: z.number().min(0).max(1),
 })

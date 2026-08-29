@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseHeuristic, stripNegationsFromSensory, assertNoAuthenticityField, fillMissingDishOrCuisine } from "@/lib/pipeline/parse-heuristic"
+import { parseHeuristic, stripNegationsFromSensory, assertNoAuthenticityField, fillMissingDishOrCuisine, tooVagueClue } from "@/lib/pipeline/parse-heuristic"
 import { gate, placesKeyword } from "@/lib/pipeline/gate"
 import { memoryMatch } from "@/schemas/score"
 import { huntToEvents } from "@/lib/pipeline/run-hunt"
@@ -111,5 +111,26 @@ describe("NEED A CLUE dish_or_cuisine recovery", () => {
     )
     expect(parsed.searchable).toBe(false)
     expect(parsed.missing_required).toContain("dish_or_cuisine")
+  })
+})
+
+describe("the second parse pass is gated on a real answer", () => {
+  it("recognises the tagged follow-up line", () => {
+    // The gate: only a "The dish or cuisine is: X" line may trigger a re-parse. Instrumenting
+    // the old version showed it firing on the *initial* vague input instead — re-parsing
+    // "Missing home food" against itself for two extra model calls — and never firing on the
+    // answered follow-up, which rule 13 had already made unnecessary.
+    const tag = (s: string) => s.match(/the dish or cuisine is:\s*([^\n]+)/i)?.[1]?.trim()
+    expect(tag("Missing home food.")).toBeUndefined()
+    expect(tag("Missing home food.\nThe dish or cuisine is: laab")).toBe("laab")
+  })
+
+  it("treats a still-vague answer as no answer", () => {
+    for (const v of ["food", "home food", "something", "idk", "missing home food"]) {
+      expect(tooVagueClue(v)).toBe(true)
+    }
+    for (const v of ["laab", "galette", "carne asada taco"]) {
+      expect(tooVagueClue(v)).toBe(false)
+    }
   })
 })
