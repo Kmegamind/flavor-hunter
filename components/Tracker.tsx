@@ -306,7 +306,8 @@ export function Tracker({ fixturePrefetch }: { fixturePrefetch?: string }) {
 
   useEffect(() => {
     if (hunt.phase === "S1B_CONFIRM" && hunt.category_name) {
-      setLog(`CONFIRM NAME · ${hunt.category_name}`)
+      setLog(`CONFIRM NAME · ${hunt.category_name}
+                {hunt.interpreting && <span className="still-reading"> · reading the rest…</span>}`)
     }
   }, [hunt.phase, hunt.category_name])
 
@@ -991,6 +992,13 @@ export function Tracker({ fixturePrefetch }: { fixturePrefetch?: string }) {
                   </button>
                 )}
               </>
+            )}
+            {hunt.below_bar && hunt.ranked.length > 0 && (
+              <div className="below-bar">
+                <b>Nothing here really matches.</b> The closest is {hunt.best_score}%, under the
+                50% we treat as a match. Widen the search or try a substitute above — or look at
+                the near-misses below.
+              </div>
             )}
             {hunt.phase === "S8_NO_ANSWER" && (
               <>

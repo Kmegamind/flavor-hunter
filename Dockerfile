@@ -22,6 +22,17 @@ ARG NEXT_PUBLIC_GOOGLE_MAP_ID
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_PUBLIC_GOOGLE_MAP_ID=$NEXT_PUBLIC_GOOGLE_MAP_ID
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Generate the sprite atlas before building.
+#
+# `public/hound.png`, `hound-emote.png` and `og-image.png` are gitignored on purpose —
+# they are rasterised from `lib/hound-pixels.ts`, so the code is the source of truth and
+# committing the output would let the two drift. The consequence is that a fresh clone has
+# no sprites, and this build previously only worked because Cloud Build uploads the working
+# directory, where they happened to exist. Anyone cloning the repo would have shipped a
+# site with no dog.
+RUN npx tsx scripts/gen-art.ts
+
 RUN npm run build
 
 FROM node:22-alpine AS runner

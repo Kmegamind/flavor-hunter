@@ -24,6 +24,11 @@ export type HuntBlip = {
 
 export type HuntState = {
   phase: HuntPhase
+  /** Name is in, anchors are still coming. */
+  interpreting?: boolean
+  /** Best candidate scored under the confidence bar — offers shown above the ranking. */
+  below_bar?: boolean
+  best_score?: number | null
   request: HuntRequest | null
   anchors: AnchorSet | null
   category_name: string | null
@@ -84,8 +89,18 @@ function illegal(from: HuntPhase, action: HuntAction): boolean {
     const t = action.event.type
     if (from === "S0_IDLE") return true
     if (from === "S2_NEED_CLUE" && (t === "candidates" || t === "evaluated" || t === "locked")) return true
-    if ((from === "S4_LOCKED" || from === "S5_EVIDENCE" || from === "S6_REFINING") && t !== "degraded") return true
-    if (from === "S6_REFINING") return true
+    // `reason` arrives *after* `locked` by design, so the post-lock phases must accept it.
+    // Without this exemption the guard silently swallowed it and the paragraph never appeared
+    // — the failure mode of streaming an event into a state machine that was written when
+    // everything still arrived before the lock.
+    if (
+      (from === "S4_LOCKED" || from === "S5_EVIDENCE" || from === "S6_REFINING") &&
+      t !== "degraded" &&
+      t !== "reason"
+    ) {
+      return true
+    }
+    if (from === "S6_REFINING" && t !== "reason") return true
     if (t === "locked") {
       const ranked = action.event.type === "locked" ? action.event.ranked : []
       if (ranked.some((r) => r.score === 0)) return true
@@ -197,6 +212,7 @@ function applyEvent(state: HuntState, event: HuntEvent): HuntState {
     case "parsed":
       return {
         ...state,
+        interpreting: false,
         anchors: event.anchors,
         category_name: event.category_name,
         category_confidence: event.confidence,
@@ -251,11 +267,36 @@ function applyEvent(state: HuntState, event: HuntEvent): HuntState {
         phase: "S8_NO_ANSWER",
         substitute_offer: { from: event.from, to: event.to },
       }
-    case "locked": {
-      const locked = event.ranked.find((r) => r.score !== null) ?? null
+    case "interpreted":
+      // The headline lands here; the anchors arrive with `parsed` a few seconds later.
       return {
         ...state,
-        phase: "S4_LOCKED",
+        category_name: event.category_name,
+        category_confidence: event.confidence,
+        interpreting: true,
+      }
+    case "reason":
+      // Arrives after `locked`, so patch the candidate already on screen rather than
+      // waiting for it. Anything else would put the whole result behind the slowest call.
+      return {
+        ...state,
+        ranked: state.ranked.map((r) =>
+          r.id === event.id
+            ? { ...r, reason: event.reason, reason_source: event.reason_source }
+            : r,
+        ),
+      }
+    case "locked": {
+      const locked = event.ranked.find((r) => r.score !== null) ?? null
+      // Below the bar the offers were already sent, so the phase stays S8 and this ranking
+      // renders underneath them. The near-misses are shown rather than withheld: the user
+      // asked a question and there is a closest answer, it just is not a good one.
+      const belowBar = event.below_bar === true
+      return {
+        ...state,
+        below_bar: belowBar,
+        best_score: event.best_score ?? null,
+        phase: belowBar ? state.phase : "S4_LOCKED",
         ranked: event.ranked,
         locked_id: locked?.id ?? null,
         blips: state.blips.map((b) => ({

@@ -72,6 +72,16 @@ export type AnchorSet = z.infer<typeof AnchorSet>
 
 export const MissingRequired = z.enum(["location", "dish_or_cuisine", "intent"])
 
+/** Call A of the parse stage: judgement only — what is this, and what is it called. */
+export const Interpretation = z.object({
+  intent: IntentEnum,
+  reasoning: z.string(),
+  category_name: z.string(),
+  category_name_native: z.string().nullish(),
+  category_confidence: z.number().min(0).max(1),
+})
+export type Interpretation = z.infer<typeof Interpretation>
+
 export const ParsedEnvelope = z.object({
   intent: IntentEnum,
   category_name: z.string(),
@@ -209,6 +219,38 @@ export const HuntEvent = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("locked"),
     ranked: z.array(RankedCandidate),
+    /**
+     * True when the best candidate scored under the confidence bar. The widen and substitute
+     * offers are sent first; this ranking is still sent so the user can see the near-misses
+     * rather than being told nothing exists.
+     */
+    below_bar: z.boolean().optional(),
+    best_score: z.number().optional(),
+  }),
+  z.object({
+    /**
+     * Sent the moment the naming call returns, before the mapping call has finished.
+     *
+     * Naming takes roughly half the parse stage, and the name is the one thing the user is
+     * waiting for — everything after it is bookkeeping. Emitting it early puts the headline on
+     * screen at about twelve seconds instead of twenty-seven, without making anything faster.
+     */
+    type: z.literal("interpreted"),
+    category_name: z.string(),
+    category_name_native: z.string().nullish(),
+    confidence: z.number(),
+    reasoning: z.string(),
+  }),
+  z.object({
+    /**
+     * Sent after `locked`, because the reason is the slowest call in the pipeline and the
+     * target does not need to wait for it. The user sees the lock land, then the paragraph
+     * arrives — 5-8 seconds of perceived latency removed for nothing in return.
+     */
+    type: z.literal("reason"),
+    id: z.string(),
+    reason: z.string(),
+    reason_source: z.enum(["written", "template", "none"]),
   }),
   z.object({
     type: z.literal("degraded"),

@@ -168,7 +168,8 @@ export async function writeReason(args: {
     }
     // 1500, not 600: gemini-3.x spends part of maxOutputTokens on thinking, and a 600
     // budget truncated the paragraph mid-sentence ("Two of the five.").
-    const out = await geminiGenerate(promptText(), JSON.stringify(payload), 1500, false)
+    // Prose gets a little room; extraction does not.
+    const out = await geminiGenerate(promptText(), JSON.stringify(payload), 1500, false, 0.3)
     if (!out) return fallback
     // Defensive: if a model still wraps the paragraph in an object, unwrap rather than
     // print braces at the user. Observed with responseMimeType: application/json set.

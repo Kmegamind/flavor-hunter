@@ -201,3 +201,143 @@ describe("PATCH_ANCHORS", () => {
     expect(s.ranked).toEqual([])
   })
 })
+
+describe("the confidence bar", () => {
+  it("keeps the near-misses visible instead of reporting nothing", () => {
+    // A single weak evidence line used to be enough to present a 25% match as the answer.
+    // Now the offers come first and the ranking follows, labelled with the real number.
+    const s = huntReducer(
+      { ...initialHuntState, phase: "S8_NO_ANSWER" },
+      {
+        type: "STREAM",
+        event: {
+          type: "locked",
+          below_bar: true,
+          best_score: 31,
+          ranked: [
+            { id: "c0", name: "Some Place", distance: 2, bearing: 10, score: 31, evidence: [] },
+          ],
+        } as never,
+      },
+    )
+    expect(s.below_bar).toBe(true)
+    expect(s.best_score).toBe(31)
+    expect(s.ranked).toHaveLength(1)
+    // Phase stays where it was: the doors are the headline, not a locked target.
+    expect(s.phase).toBe("S8_NO_ANSWER")
+  })
+
+  it("locks normally at or above the bar", () => {
+    // From S3, the realistic prior phase — the reducer drops events that do not belong to
+    // the phase it is in, so starting at S0_IDLE would test nothing.
+    const s = huntReducer(
+      { ...initialHuntState, phase: "S3_HUNTING" },
+      {
+        type: "STREAM",
+        event: {
+          type: "locked",
+          ranked: [
+            { id: "c1", name: "Good Place", distance: 1, bearing: 0, score: 63, evidence: [] },
+          ],
+        } as never,
+      },
+    )
+    expect(s.below_bar).toBeFalsy()
+    expect(s.phase).toBe("S4_LOCKED")
+    expect(s.locked_id).toBe("c1")
+  })
+})
+
+describe("the reason arrives after the lock", () => {
+  it("is not swallowed by the post-lock guard", () => {
+    // The guard was written when every event arrived before `locked`. Streaming the reason
+    // afterwards meant it hit `illegal()` and vanished, with no symptom beyond a card that
+    // never grew a paragraph.
+    const locked = huntReducer(
+      { ...initialHuntState, phase: "S3_HUNTING" },
+      {
+        type: "STREAM",
+        event: {
+          type: "locked",
+          ranked: [
+            { id: "c1", name: "Good Place", distance: 1, bearing: 0, score: 63, evidence: [] },
+          ],
+        } as never,
+      },
+    )
+    expect(locked.phase).toBe("S4_LOCKED")
+    expect(locked.ranked[0].reason).toBeUndefined()
+
+    const withReason = huntReducer(locked, {
+      type: "STREAM",
+      event: {
+        type: "reason",
+        id: "c1",
+        reason: "The menu lists it and two reviews agree.",
+        reason_source: "written",
+      } as never,
+    })
+    expect(withReason.ranked[0].reason).toContain("two reviews agree")
+    expect(withReason.ranked[0].reason_source).toBe("written")
+    // The lock itself is untouched.
+    expect(withReason.phase).toBe("S4_LOCKED")
+    expect(withReason.locked_id).toBe("c1")
+  })
+
+  it("ignores a reason for a candidate that is not on screen", () => {
+    const s = huntReducer(
+      {
+        ...initialHuntState,
+        phase: "S4_LOCKED",
+        ranked: [{ id: "c1", name: "A", distance: 1, bearing: 0, score: 60, evidence: [] }] as never,
+      },
+      {
+        type: "STREAM",
+        event: { type: "reason", id: "c9", reason: "x", reason_source: "written" } as never,
+      },
+    )
+    expect(s.ranked[0].reason).toBeUndefined()
+  })
+})
+
+describe("the name arrives before the anchors", () => {
+  it("shows the headline from `interpreted`, then fills in from `parsed`", () => {
+    // Naming is roughly half the parse stage and is the only part the user is waiting for.
+    // Emitting it early puts the headline on screen without making anything faster.
+    const named = huntReducer(
+      { ...initialHuntState, phase: "S1_DECODING" },
+      {
+        type: "STREAM",
+        event: {
+          type: "interpreted",
+          category_name: "Breton Buckwheat Galette",
+          category_name_native: null,
+          confidence: 0.95,
+          reasoning: "darker batter implies buckwheat, which makes it a galette",
+        } as never,
+      },
+    )
+    expect(named.category_name).toBe("Breton Buckwheat Galette")
+    expect(named.interpreting).toBe(true)
+    expect(named.anchors).toBeNull()
+
+    const full = huntReducer(named, {
+      type: "STREAM",
+      event: {
+        type: "parsed",
+        category_name: "Breton Buckwheat Galette",
+        confidence: 0.95,
+        searchable: true,
+        missing_required: [],
+        anchors: {
+          dish: { value: "buckwheat galette", confidence: 0.9 },
+          cuisine: null, substyle: null, sensory: [], direction: null, person: null,
+          setting: null, price_band: null, ritual: null, benchmark: null,
+          negation: [], query_variants: [], fallback_ladder: [],
+        },
+      } as never,
+    })
+    expect(full.interpreting).toBe(false)
+    expect(full.anchors?.dish?.value).toBe("buckwheat galette")
+  })
+})

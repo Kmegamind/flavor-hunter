@@ -2,6 +2,7 @@ import type { HuntEvent, ParsedEnvelope, SubstituteOffer } from "@/schemas"
 import { pickFixture, type InternalCandidate } from "@/lib/pipeline/fixture-data"
 import { searchQueries } from "@/lib/pipeline/search-queries"
 import { centerFor, toPolar } from "@/lib/pipeline/polar"
+import { prefilterCandidates } from "@/lib/pipeline/prefilter"
 
 function toBlip(center: { lat: number; lng: number }, h: { id: string; lat: number; lng: number }) {
   const p = toPolar(center, { lat: h.lat, lng: h.lng })
@@ -74,7 +75,16 @@ export async function huntCandidates(
       count: capped.length,
       blips: capped.map((h) => toBlip(center, h)),
     })
-    const detailed = await mapPool(capped, DETAILS_CONC, async (h) => {
+
+    // Stage 1.5 — rule out on the `types` we already have, before paying for details.
+    // The eliminations are announced so the field visibly narrows rather than places
+    // quietly vanishing; a filter the user cannot see is just a smaller answer set.
+    const { keep, dropped } = prefilterCandidates(parsed, capped)
+    for (const d of dropped) {
+      onEvent({ type: "eliminated", id: d.id, reason: d.reason })
+    }
+
+    const detailed = await mapPool(keep, DETAILS_CONC, async (h) => {
       const d = await placeDetails(key, h)
       onEvent({ type: "evaluated", id: h.id })
       return d

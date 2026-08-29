@@ -15,3 +15,11 @@ tests
 .claude
 .vercel
 coverage
+
+# Generated sprites — excluded so the Cloud Build upload matches a fresh clone.
+# The Dockerfile runs `npx tsx scripts/gen-art.ts`; if that step ever breaks, the build
+# must fail here rather than silently succeeding on files that happened to be lying in
+# the working directory.
+public/hound.png
+public/hound-emote.png
+public/og-image.png

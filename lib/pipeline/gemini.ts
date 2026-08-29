@@ -15,6 +15,17 @@ export async function geminiGenerate(
   maxTokens: number,
   /** Ask for JSON. Set false for prose — otherwise the model wraps the paragraph in an object. */
   json = true,
+  /**
+   * 0 for extraction, higher only for prose.
+   *
+   * The same memory scored 44% and then 97% on consecutive production runs. Not because
+   * the evidence changed but because the parse did: `rubricWeights` builds its denominator
+   * from the anchor *keys* that were found, and the fourth group alone spans five optional
+   * keys — so a run that happens to notice `setting` is scored against a different total
+   * than one that does not. Sampling temperature was manufacturing that variance for a task
+   * with a single right answer.
+   */
+  temperature = 0,
 ): Promise<string | null> {
   const key = geminiKey()
   if (!key) return null
@@ -31,7 +42,7 @@ export async function geminiGenerate(
       contents: [{ role: "user", parts: [{ text: user }] }],
       generationConfig: {
         maxOutputTokens: maxTokens,
-        temperature: 0.2,
+        temperature,
         ...(json ? { responseMimeType: "application/json" } : {}),
       },
     }),

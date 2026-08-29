@@ -1,6 +1,7 @@
 import { readFileSync } from "fs"
 import { join } from "path"
-import { ParsedEnvelope } from "@/schemas"
+import { Interpretation, ParsedEnvelope } from "@/schemas"
+import { enforceExclusions } from "@/lib/pipeline/exclusion-guard"
 import {
   parseHeuristic,
   stripNegationsFromSensory,
@@ -9,11 +10,53 @@ import {
 } from "@/lib/pipeline/parse-heuristic"
 import { geminiGenerate, geminiKey } from "@/lib/pipeline/gemini"
 
-function promptText(): string {
+function promptText(file: string, fallback: string): string {
   try {
-    return readFileSync(join(process.cwd(), "prompts/parse.md"), "utf8")
+    return readFileSync(join(process.cwd(), file), "utf8")
   } catch {
-    return "Parse the food memory into the JSON schema."
+    return fallback
+  }
+}
+
+/**
+ * Call A — judgement only: what is this food, and what is it called.
+ *
+ * Split out from the mapping call because naming was losing a competition it should not have
+ * been in. One response carrying the name *and* thirteen mechanical fields put `category_name`
+ * on equal footing with `price_band`, and it showed: a memory describing a galette in exact
+ * sensory detail came back as a generic crepe, with the country of the memory filed as a venue
+ * type. Naming is the product; it gets its own call and its own attention budget.
+ *
+ * Returns null on any failure — the caller then runs the mapping call alone, exactly as before.
+ */
+export async function interpretMemory(
+  memoryText: string,
+  locale: string,
+  cityLabel: string,
+): Promise<Interpretation | null> {
+  if (!geminiKey()) return null
+  try {
+    const text = await geminiGenerate(
+      promptText("prompts/interpret.md", "Identify the dish and name it."),
+      JSON.stringify({ memory_text: memoryText, locale, city_label: cityLabel }),
+      1200,
+    )
+    if (!text) {
+      console.warn("[interpret] no text — mapping call will name it alone")
+      return null
+    }
+    const s = text.indexOf("{")
+    const e = text.lastIndexOf("}")
+    if (s < 0) return null
+    const parsed = Interpretation.safeParse(JSON.parse(text.slice(s, e + 1)))
+    if (!parsed.success) {
+      console.warn(`[interpret] schema rejected: ${parsed.error.issues[0]?.message}`)
+      return null
+    }
+    return parsed.data
+  } catch (err) {
+    console.warn(`[interpret] threw: ${(err as Error).message}`)
+    return null
   }
 }
 
@@ -21,8 +64,10 @@ export async function parseMemory(
   memoryText: string,
   locale: string,
   cityLabel: string,
+  /** Called as soon as the naming call returns, so the headline can be shown early. */
+  onInterpret?: (i: Interpretation) => void,
 ): Promise<ParsedEnvelope> {
-  const combined = await parseOnce(memoryText, locale, cityLabel)
+  const combined = await parseOnce(memoryText, locale, cityLabel, onInterpret)
   if (combined.anchors.dish || combined.anchors.cuisine) return combined
 
   const clue = lastClueChunk(memoryText).trim()
@@ -143,14 +188,17 @@ async function parseOnce(
   memoryText: string,
   locale: string,
   cityLabel: string,
+  onInterpret?: (i: Interpretation) => void,
 ): Promise<ParsedEnvelope> {
   const key = geminiKey()
   if (!key) return heuristicFallback("no GEMINI_API_KEY", memoryText, cityLabel)
 
   try {
+    const interpretation = await interpretMemory(memoryText, locale, cityLabel)
+    if (interpretation) onInterpret?.(interpretation)
     const text = await geminiGenerate(
-      promptText(),
-      JSON.stringify({ memory_text: memoryText, locale, city_label: cityLabel }),
+      promptText("prompts/parse.md", "Parse the food memory into the JSON schema."),
+      JSON.stringify({ memory_text: memoryText, locale, city_label: cityLabel, interpretation }),
       2000,
     )
     if (!text) return heuristicFallback("model returned no text", memoryText, cityLabel)
@@ -204,7 +252,15 @@ function postParse(parsed: ParsedEnvelope, memoryText: string, cityLabel: string
     (r) => Boolean(r.relation) && Boolean(r.dish || r.cuisine),
   )
   next = { ...next, anchors: { ...next.anchors, query_variants: variants, fallback_ladder: ladder } }
-  return next
+
+  // An exclusion that reaches a positive anchor inverts the request. Repair and say so.
+  const guarded = enforceExclusions(next)
+  for (const v of guarded.violations) {
+    console.warn(
+      `[exclusions] dropped ${v.where}.${v.anchor} — it contained the excluded term "${v.term}"`,
+    )
+  }
+  return guarded.parsed
 }
 
 function uniqStr(xs: string[]) {

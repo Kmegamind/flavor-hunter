@@ -2,7 +2,23 @@ import type { EvidenceLine, ParsedEnvelope } from "@/schemas"
 import { hasCjk } from "@/lib/pipeline/english-labels"
 import { clueNeedles } from "@/lib/pipeline/clue-lexicon"
 
-const SCALAR_KEYS = ["dish", "cuisine", "substyle", "person", "setting", "ritual", "benchmark"] as const
+/**
+ * Anchors whose literal value is worth hunting for in review text.
+ *
+ * `person` and `benchmark` were here and have been removed, for opposite reasons.
+ *
+ * `person` is usually a word like "mom". A review containing "mom" — "came here with my mom" —
+ * would satisfy the anchor and earn its rubric weight, while saying nothing about whether the
+ * cooking resembles anyone's mother. The useful half of `person` survives: it gates the
+ * operator-origin phrases in the clue lexicon ("the owner is from", "grew up in"), which are
+ * complete statements rather than a bare noun.
+ *
+ * `benchmark` is a restaurant the user has already tried and found wanting — "Chipotle is
+ * tastier than this place". Matching it in reviews turned a *complaint* into positive evidence.
+ * Its real job is exclusion, and `hunt.ts` still does that: a candidate whose name contains the
+ * benchmark is eliminated as "already tried".
+ */
+const SCALAR_KEYS = ["dish", "cuisine", "substyle", "setting", "ritual"] as const
 
 const MAX_QUOTE = 110
 

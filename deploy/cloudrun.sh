@@ -24,7 +24,7 @@ ok()  { printf '\033[32m✓\033[0m %s\n' "$*"; }
 command -v gcloud >/dev/null || die "gcloud not found. brew install --cask google-cloud-sdk"
 [ -f "$ENV_FILE" ] || die "$ENV_FILE not found. cp .env.example .env.local and fill it in."
 
-PROJECT="$(gcloud config get-value project 2>/dev/null)"
+PROJECT="${PROJECT:-$(gcloud config get-value project 2>/dev/null)}"
 [ -n "$PROJECT" ] && [ "$PROJECT" != "(unset)" ] || die "No project set. Run: gcloud init"
 
 # ── Read .env.local without sourcing it ───────────────────────────────────────
@@ -59,9 +59,15 @@ done
 
 say "project $PROJECT · region $REGION · service $SERVICE"
 
+# Every gcloud call below pins --project explicitly. A build once ran under a *different*
+# project's service account because the ambient `core/project` had been changed elsewhere,
+# and the resulting "permission denied on the repository (or it may not exist)" sent the
+# investigation after IAM for half an hour. The identity a build runs as is not something
+# to leave to global config.
+
 # ── APIs ──────────────────────────────────────────────────────────────────────
 say "enabling APIs (no-op if already on)"
-gcloud services enable \
+gcloud services enable --project="$PROJECT" \
   run.googleapis.com \
   cloudbuild.googleapis.com \
   artifactregistry.googleapis.com \
@@ -106,7 +112,7 @@ if ! gcloud artifacts repositories describe "$SERVICE" --location="$REGION" --qu
 fi
 
 say "building in Cloud Build (no local Docker needed)"
-gcloud builds submit \
+gcloud builds submit --project="$PROJECT" \
   --config=deploy/cloudbuild.yaml \
   --substitutions="_MAPS_KEY=${MAPS_KEY},_MAP_ID=${MAP_ID},_IMAGE=${IMAGE}" \
   --quiet
@@ -116,7 +122,7 @@ ok "image $IMAGE"
 # concurrency 20, not the default 80: a hunt holds a request open for tens of seconds
 # while it streams, and a container juggling 80 of those will have them all time out.
 say "deploying"
-gcloud run deploy "$SERVICE" \
+gcloud run deploy "$SERVICE" --project="$PROJECT" \
   --image "$IMAGE" \
   --region "$REGION" \
   --platform managed \
@@ -132,7 +138,7 @@ gcloud run deploy "$SERVICE" \
   --set-secrets "GEMINI_API_KEY=fh-gemini-api-key:latest,GOOGLE_PLACES_API_KEY=fh-places-api-key:latest" \
   --quiet
 
-URL="$(gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)')"
+URL="$(gcloud run services describe "$SERVICE" --project="$PROJECT" --region "$REGION" --format='value(status.url)')"
 ok "live at $URL"
 
 cat <<EOF

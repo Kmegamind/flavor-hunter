@@ -23,6 +23,23 @@ function uniqFold(xs: string[]): string[] {
  * Stage-1 Text Search strings (PRD FR-1). Never includes memory-origin geography (A11).
  * An accepted substitute replaces the dish, not the original variant list (PRD FR-4b-2).
  */
+/**
+ * Places price levels, for the `price_band` anchor.
+ *
+ * The anchor was being extracted and scored but never used to search — while Places exposes
+ * `priceLevel` directly, which is the one narrowing signal available for free.
+ */
+export function priceLevels(parsed: ParsedEnvelope): string[] | null {
+  const raw = parsed.anchors.price_band?.value?.toLowerCase() ?? ""
+  if (!raw) return null
+  if (/\$\$\$|expensive|upscale|fine/.test(raw)) return ["PRICE_LEVEL_EXPENSIVE", "PRICE_LEVEL_VERY_EXPENSIVE"]
+  if (/\$\$|moderate|mid/.test(raw)) return ["PRICE_LEVEL_MODERATE"]
+  if (/\$|cheap|budget|street|under \d|\bfew dollars\b/.test(raw)) {
+    return ["PRICE_LEVEL_INEXPENSIVE", "PRICE_LEVEL_MODERATE"]
+  }
+  return null
+}
+
 export function searchQueries(
   parsed: ParsedEnvelope,
   searchCity: string,

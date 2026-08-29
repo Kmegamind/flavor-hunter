@@ -1227,3 +1227,27 @@ body {
   font-size: 11px;
   cursor: pointer;
 }
+
+/* Shown when the best candidate is under the confidence bar. The near-misses are still
+   listed below it — withholding them would be its own dishonesty. */
+.below-bar {
+  font-family: var(--font-read);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--hi);
+  border: 2px solid var(--lock);
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.below-bar b {
+  color: var(--lock);
+  font-weight: 400;
+}
+
+/* The name lands before the anchors do; this says the rest is still coming. */
+.still-reading {
+  font-family: var(--font-read);
+  font-size: 12px;
+  color: var(--mute);
+}
