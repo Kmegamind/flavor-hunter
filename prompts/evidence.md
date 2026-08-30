@@ -9,6 +9,14 @@ You quote. You never paraphrase. You never invent. If the menu text does not con
 ```json
 {
   "anchors": { },
+  "anchor_priority": [
+    { "anchor": "dish", "points": 30 },
+    { "anchor": "sensory", "points": 15 },
+    { "anchor": "substyle", "points": 15 },
+    { "anchor": "cuisine", "points": 20 },
+    { "anchor": "person", "points": 10 },
+    { "anchor": "ritual", "points": 10 }
+  ],
   "candidates": [
     {
       "id": "c0",
@@ -19,6 +27,9 @@ You quote. You never paraphrase. You never invent. If the menu text does not con
   ]
 }
 ```
+
+`anchor_priority` lists what each anchor is worth to the score, highest first — see
+"Where to spend your attention" below.
 
 There are **no review bodies** in this payload. Do not allude to reviews. Do not write "reviewers say". The server matches reviews by deterministic substring and stamps `mechanism` itself.
 
@@ -58,6 +69,29 @@ Array, one object per candidate id:
    omit `quote_en` and keep the quote — the UI will show the original. **Never** invent a
    substitute sentence.
 9. `anchor` values must be one of the supplied anchor keys: `dish`, `cuisine`, `substyle`, `sensory`, `direction`, `person`, `setting`, `price_band`, `ritual`, `benchmark`. For `sensory`, use `sensory` (not the sensory string) as the key; put the matching words in `quote`.
+
+## Where to spend your attention
+
+`anchor_priority` tells you what the server's rubric pays for. You are reading up to eight
+menus in one call; that attention is finite, and it was previously spread evenly over anchors
+worth 30 points and anchors worth 4.
+
+Read the menu **once for the top-priority anchors, then again for the rest.** If a menu is long
+and you must be selective, be selective at the bottom of the list, never at the top. Only
+anchors the user actually supplied appear in the list — an anchor missing from it is worth
+nothing and should not be searched for at all.
+
+**This changes what you look for first. It changes nothing about what counts as a quote.**
+
+A high-weight anchor with no verbatim span is *omitted*, exactly like a low-weight one. Points
+are not something you can earn by trying harder, by accepting a looser match, or by stretching
+a span to cover a word it does not contain. There is no partial credit and no credit for
+effort. The server drops any quote that is not a byte-exact substring, so an invented
+high-weight line does not score — it just costs the candidate the credibility of the lines that
+were real.
+
+If you find yourself reasoning "this is the 30-point anchor, surely something here supports
+it", that is the failure this section exists to prevent. Omit it.
 
 ## What you are not doing
 

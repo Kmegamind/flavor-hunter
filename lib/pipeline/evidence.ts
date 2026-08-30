@@ -1,5 +1,5 @@
 import type { EvidenceLine, ParsedEnvelope, RankedCandidate } from "@/schemas"
-import { filterWebsiteQuotes, memoryMatch } from "@/schemas/score"
+import { filterWebsiteQuotes, memoryMatch, rubricWeights } from "@/schemas/score"
 import type { InternalCandidate } from "@/lib/pipeline/fixture-data"
 import { toPolar } from "@/lib/pipeline/polar"
 import { geminiGenerate, geminiKey } from "@/lib/pipeline/gemini"
@@ -57,10 +57,29 @@ function heuristicWebsiteQuotes(parsed: ParsedEnvelope, menu: string) {
   return filterWebsiteQuotes(guesses, menu)
 }
 
+/**
+ * What each anchor is worth, highest first, for the evidence call to read.
+ *
+ * The scoring rubric already lived in `schemas/score.ts`, but the model doing the looking had
+ * no idea it existed. It spent equal effort on `dish` (30 points) and `price_band` (a quarter
+ * of a 20-point group, so 4), and with one batched call across up to eight candidates that
+ * attention is a real budget being spent evenly on unequal things.
+ *
+ * This is search order, not a reward signal — see the "Where to spend your attention" section
+ * of prompts/evidence.md, which is emphatic that a missing high-weight quote beats an invented
+ * one. Byte-verification remains the backstop either way.
+ */
+function anchorPriority(parsed: ParsedEnvelope) {
+  return rubricWeights(parsed.anchors)
+    .map((r) => ({ anchor: r.key, points: Math.round(r.weight * 10) / 10 }))
+    .sort((a, b) => b.points - a.points)
+}
+
 /** LLM payload: website + Places metadata only. Review bodies must never appear. */
 export function evidenceLlmUserPayload(parsed: ParsedEnvelope, candidates: InternalCandidate[]) {
   return {
     anchors: parsed.anchors,
+    anchor_priority: anchorPriority(parsed),
     candidates: candidates.map((c) => ({
       id: c.id,
       name: c.name,
