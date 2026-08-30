@@ -348,3 +348,66 @@ evidence that it had stopped using the model was a log line that did not exist y
 second time in this project a silent fallback has run for an extended period — the first was a
 retired model id — and both were found only by adding logging to the fallback path rather than
 by reading output.
+
+## Rubric weights in the evidence prompt — and what measuring it found
+
+The evidence call now receives `anchor_priority`, the rubric's own weights, so it reads eight
+menus in priority order instead of spending equal attention on a 30-point anchor and a 4-point
+one. The prompt frames this as search order, never as reward: byte-verification sits downstream
+and does not consult weights, so an invented high-value quote scores nothing.
+
+Trying to measure the change is what mattered. Five runs per revision on one identical galette
+memory:
+
+| revision | winners across 5 runs | scores |
+|---|---|---|
+| with weights | Dulce Crepes, MAISON BREIZH, 3× no lock | 45, 81 |
+| control | Fontaine ×2, Dulce, 2× no lock | 65, 65, 65 |
+
+The effect of the change is not visible because the noise is larger than the effect. **The same
+memory, on the same revision, produces different winners and scores between 45% and 81%.**
+
+### Where the variance comes from
+
+Not sampling: every extraction call already runs at `temperature = 0`. Five identical parse
+requests returned:
+
+- `query_variants` — **five distinct lists out of five**, one of them empty
+- `dish` — flipping between `"galette de sarrasin"` and `"buckwheat galette"`
+- `setting` — extracted in three runs, absent in the other two
+
+The first two change which restaurants are searched for at all. The third changes the score, and
+this is the part worth understanding, because it is arithmetic rather than luck:
+
+```
+anchors {dish, cuisine, substyle, sensory}           denominator  80
+anchors {dish, cuisine, substyle, sensory, setting}  denominator 100
+
+identical evidence covering dish + cuisine + substyle = 65 points earned
+
+    65/80  = 81%      the parse missed "a tiny place"
+    65/100 = 65%      the parse noticed it
+```
+
+Both observed numbers, reproduced exactly.
+
+### The uncomfortable part
+
+**The run that understood the memory better scored lower.** Noticing `setting` added 20 points to
+the denominator and nothing to the numerator, because no restaurant website says "tiny". The
+rubric charges the candidate for everything the parse understood and credits it only for what the
+web happens to confirm — so a better parse looks like a worse match.
+
+Which of the two numbers is honest is a real question, and it is not the higher one. 65% is
+correct: the user did say "a tiny place", nothing verified it, and `whyNotHundred` already says
+so. 81% is the number you get when the parser fails to hear part of the memory. So the rubric is
+not obviously wrong — the instability is.
+
+`lib/pipeline/gemini.ts` carries a comment describing this exact failure ("44% and then 97% on
+consecutive production runs") and presents `temperature = 0` as the fix. That fix did not work,
+and the comment made it look settled. Temperature 0 does not make the model deterministic; it
+only removes one source of variance out of several.
+
+Not fixed here. It needs a decision about whether to stabilise the parse (caching by memory text,
+or prompt rules that make optional-anchor extraction non-optional) or to change what the
+denominator is allowed to contain.
