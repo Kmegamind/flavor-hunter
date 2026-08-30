@@ -18,6 +18,7 @@ Engineering source of truth for **diagrams and frozen contracts:** [08 System De
 | 08 | [System Design](08-system-design.md) | Architecture, sequence + swimlanes, polar contract, batched-evidence wait pose, **tradeoff log** | **Current — engineering SoT** |
 | 09 | [Frontend Machines](09-frontend-machines.md) | Hunt/Sheet/Settings reducers, illegal transitions, stream client, refine pure function | **Current** |
 | 10 | [Pipeline Stages](10-pipeline-stages.md) | Parse / Gate / Hunt / Evidence; byte-verify; A1–A12 harness | **Current** |
+| 15 | [Retrieval Redesign](15-retrieval-redesign.md) | Why one memory returns three different restaurants; query fan-out + RRF, the admission rule, and the exclusion taxonomy | **Proposed** — measured, not yet built |
 
 Code contracts (implementation-ready, not the app):
 
